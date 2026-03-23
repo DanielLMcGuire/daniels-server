@@ -19,8 +19,7 @@
         "node": ">=22.0.0"
     },
     "files": [
-        "dist/",
-        "resources/"
+        "dist/"
     ],
     "imports": {
         "#server/primary":   "./src/primary.mts",
