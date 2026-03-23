@@ -1,7 +1,7 @@
 import esbuild from 'esbuild';
 import ts from 'typescript';
 
-console.log('compiling');
+console.log('type checking');
 
 const configPath = ts.findConfigFile('./', ts.sys.fileExists, 'tsconfig.json');
 if (!configPath) throw new Error('tsconfig.json not found');
@@ -27,7 +27,7 @@ if (diagnostics.length) {
     process.exit(1);
 }
 
-console.log('bundling');
+console.log('compiling and bundling');
 
 await esbuild.build({
     entryPoints: ['src/server.mts'],
