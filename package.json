@@ -1,7 +1,7 @@
 {
     "name": "daniels-server",
     "version": "1.0.0",
-    "description": "A static file server",
+    "description": "A static http file server",
     "license": "MIT",
     "author": "Daniel McGuire",
     "type": "module",
@@ -13,17 +13,22 @@
     },
     "files": [
         "dist/",
-        "server-mimetypes.json"
+        "resources/"
     ],
     "imports": {
-        "#server/primary": "./src/primary.mts",
-        "#server/worker":  "./src/worker.mts",
-        "#server/mimetypes": "./server-mimetypes.json"
+        "#server/primary":   "./src/primary.mts",
+        "#server/worker":    "./src/worker.mts",
+        "#server/cache":     "./src/cache.mts",
+        "#server/serve":     "./src/serve.mts",
+        "#server/mime":      "./src/mime.mts",
+        "#server/range":     "./src/range.mts",
+        "#server/devtools":  "./src/devtools.mts",
+        "#server/types":     "./src/types.mts",
+        "#server/mimetypes": "./resources/server-mimetypes.json"
     },
     "scripts": {
-        "build": "tsc --noEmit && node build.mjs",
+        "build": "node build.mjs",
         "start": "node dist/server.min.mjs",
-        "start-test": "node dist/server.min.mjs 80 ", 
         "dev": "node --watch src/server.mts"
     },
     "devDependencies": {
