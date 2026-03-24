@@ -1,7 +1,7 @@
 {
     "name": "daniels-server",
-    "version": "1.0.0",
-    "description": "A static http file server",
+    "version": "1.1.0",
+    "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
     "type": "module",
@@ -41,8 +41,9 @@
     },
     "scripts": {
         "build": "node build.mjs",
+        "build:dev": "node build.mjs --watch",
+        "build:docs": "cd docs && node build.mjs",
         "start": "node dist/server.min.mjs",
-        "dev": "node --watch src/server.mts",
         "prepublishOnly": "npm run build"
     },
     "devDependencies": {
