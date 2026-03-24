@@ -53,7 +53,7 @@ npx zorvix 8080 --dev --devtools -l
 `api.mts` exports `createServer()` for embedding the server in your own code. In addition to static file serving, you can register REST routes and middleware that run before the static layer.
 
 ```ts
-import { createServer } from './zorvix/dist/api.mts'; // Not in npm yet!
+import { createServer } from 'zorvix';
 
 const server = createServer({ port: 8080, root: './public', logging: true });
 
