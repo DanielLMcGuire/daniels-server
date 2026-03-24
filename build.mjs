@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import esbuild from 'esbuild';
 import ts from 'typescript';
-import { existsSync, readdirSync, renameSync, rmSync } from 'fs';
-import { join } from 'path';
+import { generateDtsBundle } from 'dts-bundle-generator';
+import { writeFileSync } from 'fs';
 import config from './build.config.mjs';
 
 const isWatchMode = config.flags.watch;
@@ -32,15 +32,11 @@ function loadConfig() {
 
 /** @param {ts.ParsedCommandLine} tsConfig */
 function runTypeCheck(tsConfig) {
-    const { entryFiles, outDir, rootDir } = config.ts;
+    const { entryFiles } = config.ts;
 
     const compilerOptions = {
         ...tsConfig.options,
-        noEmit: false,
-        emitDeclarationOnly: true,
-        declaration: true,
-        outDir,
-        rootDir,
+        noEmit: true,
     };
 
     if (isWatchMode) {
@@ -67,45 +63,20 @@ function runTypeCheck(tsConfig) {
             );
             process.exit(1);
         }
-
-        program.emit();
     }
 }
+function emitDeclarations() {
+    const { dtsEntry, dtsOutput } = config.ts;
 
-function cleanupDeclarations() {
-    const { outDir, keepDeclarations } = config.ts;
+    const [output] = generateDtsBundle([{
+        filePath: dtsEntry,
+        libraries: {
+            allowedTypesLibraries: ['node'],
+        },
+        output: { exportReferencedTypes: false },
+    }]);
 
-    if (!existsSync(outDir)) return;
-
-    for (const file of readdirSync(outDir)) {
-        if (file.endsWith('.d.mts') && !keepDeclarations.has(file)) {
-            rmSync(`${outDir}/${file}`);
-        }
-    }
-}
-
-function flattenDeclarations() {
-    const { outDir } = config.ts;
-    const stack = [outDir];
-    while (stack.length) {
-        const dir = stack.pop();
-        for (const entry of readdirSync(dir, { withFileTypes: true })) {
-            const full = join(dir, entry.name);
-            if (entry.isDirectory()) {
-                stack.push(full);
-            } else if (
-                entry.name.endsWith('.d.mts') ||
-                entry.name.endsWith('.d.mts.map') ||
-                entry.name.endsWith('.d.ts') ||
-                entry.name.endsWith('.d.ts.map')
-            ) {
-                if (dir !== outDir) renameSync(full, join(outDir, entry.name));
-            }
-        }
-    }
-    for (const entry of readdirSync(outDir, { withFileTypes: true })) {
-        if (entry.isDirectory()) rmSync(join(outDir, entry.name), { recursive: true });
-    }
+    writeFileSync(dtsOutput, output, 'utf8');
 }
 
 async function runBundling() {
@@ -133,8 +104,7 @@ async function build() {
     try {
         const tsConfig = loadConfig();
         runTypeCheck(tsConfig);
-        flattenDeclarations();
-        cleanupDeclarations();
+        emitDeclarations();
         await runBundling();
 
         if (!isWatchMode) {

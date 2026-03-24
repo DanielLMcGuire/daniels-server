@@ -2,7 +2,7 @@ import path                                from 'path';
 import { IncomingMessage, ServerResponse } from 'http';
 import { serveBufferFile, serveStreamFile } from '#zorvix/serve';
 import { isAttachment, cacheControlFor }    from '#zorvix/mime';
-import type { CachedFile } from '#zorvix/types';
+import type { CachedFile } from '#zorvix/static-types';
 
 type GetFile      = (filepath: string) => Promise<CachedFile | null>;
 type DevToolsFn   = (req: IncomingMessage, res: ServerResponse, method: string) => void;

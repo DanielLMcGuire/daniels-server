@@ -1,4 +1,4 @@
-import { MAX_HEADERS_COUNT, MAX_URL_LENGTH } from '#zorvix/types';
+import { MAX_HEADERS_COUNT, MAX_URL_LENGTH } from '#zorvix/internal-types';
 import type { RequestHandler } from '#zorvix/api-types';
 
 /**

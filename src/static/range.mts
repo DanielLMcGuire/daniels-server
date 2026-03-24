@@ -1,5 +1,5 @@
 import { ServerResponse }          from 'http';
-import type { RangeResult, ByteRange }  from '#zorvix/types';
+import type { RangeResult, ByteRange }  from '#zorvix/static-types';
 
 export function parseRange(header: string, totalSize: number): RangeResult {
     if (header.includes(',')) return 'not-implemented';
