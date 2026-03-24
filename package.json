@@ -1,6 +1,6 @@
 {
     "name": "zorvix",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
@@ -10,10 +10,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/DanielLMcGuire/zorvix.git"
+        "url": "git+https://github.com/DanielLMcGuire/zorvix.git"
     },
     "bin": {
-        "zorvix": "./dist/zorvix.min.mjs"
+        "zorvix": "dist/zorvix.min.mjs"
     },
     "exports": {
         ".": {
