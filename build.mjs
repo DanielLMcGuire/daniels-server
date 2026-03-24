@@ -69,7 +69,7 @@ function runTypeCheck(tsConfig) {
 
 function cleanupDeclarations() {
     const distPath = 'dist';
-    const KEEP = new Set(['api.d.mts', 'types.d.mts']);
+    const KEEP = new Set(['api.d.mts']);
 
     if (!existsSync(distPath)) return;
 
