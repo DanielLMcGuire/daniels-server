@@ -2,6 +2,12 @@ import cluster from 'cluster';
 import { runPrimary } from '#zorvix/primary';
 import { runWorker  } from '#zorvix/worker';
 
+const nodeVersion = process.versions.node.split('.').map(Number);
+if (nodeVersion[0] < 22) {
+  console.error('Zorvix requires Node.js 22 or higher');
+  process.exit(1);
+}
+
 const portArg = process.argv[2];
 const port: number | undefined = portArg ? parseInt(portArg, 10) : undefined;
 

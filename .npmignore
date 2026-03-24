@@ -1,0 +1,7 @@
+.github/
+tests/
+man/
+*.test.mts
+tsconfig.json
+build.mjs
+*.md

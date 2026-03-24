@@ -21,6 +21,21 @@
             "types": "./dist/api.d.mts"
         }
     },
+    "keywords": [
+        "static-server",
+        "http-server",
+        "https-server",
+        "file-server",
+        "web-server",
+        "dev-server",
+        "serve",
+        "clustering",
+        "range-requests",
+        "gzip",
+        "tls",
+        "middleware",
+        "router"
+    ],
     "engines": {
         "node": ">=22.0.0"
     },
@@ -55,5 +70,8 @@
         "esbuild": "^0.25.0",
         "tsx": "^4.21.0",
         "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "zorvix": "^1.0.0"
     }
 }
