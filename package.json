@@ -1,6 +1,6 @@
 {
     "name": "zorvix",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
@@ -46,6 +46,7 @@
         "#zorvix/api": "./src/api.mts",
         "#zorvix/api-types": "./src/api-types.mts",
         "#zorvix/cache": "./src/cache.mts",
+        "#zorvix/cli": "./src/cli.mts",
         "#zorvix/devtools": "./src/devtools.mts",
         "#zorvix/mime": "./src/mime.mts",
         "#zorvix/primary": "./src/primary.mts",
@@ -54,8 +55,8 @@
         "#zorvix/serve": "./src/serve.mts",
         "#zorvix/static": "./src/static.mts",
         "#zorvix/types": "./src/types.mts",
-        "#zorvix/mimetypes": "./resources/server-mimetypes.json",
         "#zorvix/worker": "./src/worker.mts",
+        "#zorvix/mimetypes": "./resources/server-mimetypes.json",
         "#zorvix/pkg": "./package.json"
     },
     "scripts": {
