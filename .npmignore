@@ -4,4 +4,5 @@ man/
 *.test.mts
 tsconfig.json
 build.mjs
+build.config.mjs
 *.md
