@@ -7,7 +7,7 @@
 )](https://github.com/DanielLMcGuire/Zorvix/actions/workflows/ci.yml?query=event%3Apush+branch%3Amaster)
 
 
-A zero-dependency Node.js static file / REST routing server with support for clustering, TLS, HTTP caching, range requests, gzip, and Chrome DevTools workspace integration.
+A zero-dependency Node.js static file / REST routing server with support for clustering, TLS, HTTP caching, range requests, gzip, middleware, and Chrome DevTools workspace integration.
 
 
 ---
