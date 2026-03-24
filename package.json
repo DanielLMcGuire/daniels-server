@@ -25,8 +25,7 @@
         "node": ">=22.0.0"
     },
     "files": [
-        "dist/",
-        "man/"
+        "dist/"
     ],
     "imports": {
         "#server/primary": "./src/primary.mts",
@@ -42,7 +41,6 @@
     },
     "scripts": {
         "build": "node build.mjs",
-        "build:man": "cd man && node build.mjs",
         "start": "node dist/server.min.mjs",
         "dev": "node --watch src/server.mts"
     },
