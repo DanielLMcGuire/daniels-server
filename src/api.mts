@@ -4,11 +4,11 @@ import fs                from 'fs';
 import crypto            from 'crypto';
 import path              from 'path';
 import { IncomingMessage, ServerResponse } from 'http';
-import { createCache }   from '#server/cache';
-import { createDevToolsHandler } from '#server/devtools';
-import { serveBufferFile, serveStreamFile } from '#server/serve';
-import { isAttachment, cacheControlFor }    from '#server/mime';
-import { HEADERS_TIMEOUT_MS, REQUEST_TIMEOUT_MS, MAX_HEADERS_COUNT, MAX_URL_LENGTH } from '#server/types';
+import { createCache }   from '#zorvix/cache';
+import { createDevToolsHandler } from '#zorvix/devtools';
+import { serveBufferFile, serveStreamFile } from '#zorvix/serve';
+import { isAttachment, cacheControlFor }    from '#zorvix/mime';
+import { HEADERS_TIMEOUT_MS, REQUEST_TIMEOUT_MS, MAX_HEADERS_COUNT, MAX_URL_LENGTH } from '#zorvix/types';
 
 declare module 'http' {
     interface IncomingMessage {

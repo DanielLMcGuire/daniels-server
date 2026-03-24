@@ -1,4 +1,4 @@
-import mimeTypes from '#server/mimetypes' with { type: 'json' };
+import mimeTypes from '#zorvix/mimetypes' with { type: 'json' };
 
 const COMPRESSIBLE_MIME_TYPES = new Set([
     'text/html', 'text/css', 'text/plain', 'text/xml', 'text/csv',

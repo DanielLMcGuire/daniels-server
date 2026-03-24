@@ -1,19 +1,19 @@
 {
-    "name": "daniels-server",
-    "version": "1.1.0",
+    "name": "zorvix",
+    "version": "1.0.0",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
     "type": "module",
     "bugs": {
-        "url": "https://github.com/DanielLMcGuire/daniels-server/issues"
+        "url": "https://github.com/DanielLMcGuire/zorvix/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/DanielLMcGuire/daniels-server.git"
+        "url": "https://github.com/DanielLMcGuire/zorvix.git"
     },
     "bin": {
-        "daniels-server": "./dist/server.min.mjs"
+        "zorvix": "./dist/zorvix.min.mjs"
     },
     "exports": {
         ".": {
@@ -28,22 +28,22 @@
         "dist/"
     ],
     "imports": {
-        "#server/primary": "./src/primary.mts",
-        "#server/worker": "./src/worker.mts",
-        "#server/cache": "./src/cache.mts",
-        "#server/serve": "./src/serve.mts",
-        "#server/mime": "./src/mime.mts",
-        "#server/range": "./src/range.mts",
-        "#server/devtools": "./src/devtools.mts",
-        "#server/types": "./src/types.mts",
-        "#server/api": "./src/api.mts",
-        "#server/mimetypes": "./resources/server-mimetypes.json"
+        "#zorvix/primary": "./src/primary.mts",
+        "#zorvix/worker": "./src/worker.mts",
+        "#zorvix/cache": "./src/cache.mts",
+        "#zorvix/serve": "./src/serve.mts",
+        "#zorvix/mime": "./src/mime.mts",
+        "#zorvix/range": "./src/range.mts",
+        "#zorvix/devtools": "./src/devtools.mts",
+        "#zorvix/types": "./src/types.mts",
+        "#zorvix/api": "./src/api.mts",
+        "#zorvix/mimetypes": "./resources/server-mimetypes.json"
     },
     "scripts": {
         "build": "node build.mjs",
         "build:dev": "node build.mjs --watch",
         "build:docs": "cd docs && node build.mjs",
-        "start": "node dist/server.min.mjs",
+        "start": "node dist/zorvix.min.mjs",
         "prepublishOnly": "npm run build"
     },
     "devDependencies": {

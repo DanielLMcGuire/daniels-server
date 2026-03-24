@@ -2,9 +2,9 @@ import fs                              from 'fs';
 import path                            from 'path';
 import zlib                            from 'zlib';
 import { IncomingMessage, ServerResponse } from 'http';
-import { CachedBuffer, CachedStream }  from '#server/types';
-import { isCompressible }              from '#server/mime';
-import { parseRange, handleRangeError } from '#server/range';
+import { CachedBuffer, CachedStream }  from '#zorvix/types';
+import { isCompressible }              from '#zorvix/mime';
+import { parseRange, handleRangeError } from '#zorvix/range';
 
 export function serveBufferFile(
     req:         IncomingMessage,

@@ -2,8 +2,8 @@ import fs      from 'fs';
 import crypto  from 'crypto';
 import path    from 'path';
 import zlib    from 'zlib';
-import { getMimeType, isCompressible }                   from '#server/mime';
-import { MAX_CACHE_SIZE, CACHE_TTL_MS, CachedFile, CachedBuffer } from '#server/types';
+import { getMimeType, isCompressible }                   from '#zorvix/mime';
+import { MAX_CACHE_SIZE, CACHE_TTL_MS, CachedFile, CachedBuffer } from '#zorvix/types';
 
 function gzipAsync(buf: Buffer): Promise<Buffer> {
     return new Promise((resolve, reject) =>

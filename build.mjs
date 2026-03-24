@@ -75,7 +75,7 @@ async function runBundling() {
     };
 
     const entryPoints = [
-        { in: 'src/server.mts', out: 'dist/server.min.mjs', banner: { js: '#!/usr/bin/env node' } },
+        { in: 'src/zorvix.mts', out: 'dist/zorvix.min.mjs', banner: { js: '#!/usr/bin/env node' } },
         { in: 'src/api.mts', out: 'dist/api.min.mjs' }
     ];
 

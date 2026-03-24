@@ -1,4 +1,4 @@
-# daniels-server
+# Zorvix
 
 A zero-dependency Node.js static file server with support for clustering, TLS, HTTP caching, range requests, gzip, and Chrome DevTools workspace integration.
 
@@ -12,7 +12,7 @@ npm install
 # typecheck, compile ts, pack
 npm run build
 # run
-node dist/server.min.js <port> [options]
+node dist/zorvix.min.js <port> [options]
 ```
 
 ### Options
@@ -51,9 +51,9 @@ node server.js 8080 --dev --devtools -l
 `api.mts` exports `createServer()` for embedding the server in your own code. In addition to static file serving, you can register REST routes and middleware that run before the static layer.
 
 ```ts
-import { createServer } from './api.mts';
+import { createServer } from './zorvix/dist/api.mts'; // Not in npm yet!
 
-const server = createServer({ port: 8080, root: './dist', logging: true });
+const server = createServer({ port: 8080, root: './public', logging: true });
 
 // Global middleware — runs for every request before routes and static serving
 server.use((req, res, next) => {
