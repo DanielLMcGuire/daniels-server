@@ -2,6 +2,9 @@
 import esbuild from 'esbuild';
 import ts from 'typescript';
 import { existsSync, readdirSync, rmSync } from 'fs';
+import config from './build.config.mjs';
+
+const isWatchMode = config.flags.watch;
 
 /** @type {ts.FormatDiagnosticsHost} */
 const diagHost = {
@@ -10,46 +13,45 @@ const diagHost = {
     getNewLine: () => '\n',
 };
 
-const isWatchMode = process.argv.includes('--watch');
-
 /** @returns {ts.ParsedCommandLine} */
 function loadConfig() {
     const configPath = ts.findConfigFile('./', ts.sys.fileExists, 'tsconfig.json');
     if (!configPath) throw new Error('tsconfig.json not found');
 
-    const { config, error } = ts.readConfigFile(configPath, ts.sys.readFile);
+    const { config: raw, error } = ts.readConfigFile(configPath, ts.sys.readFile);
     if (error) throw new Error(ts.formatDiagnostic(error, diagHost));
 
-    const parsed = ts.parseJsonConfigFileContent(config, ts.sys, './');
+    const parsed = ts.parseJsonConfigFileContent(raw, ts.sys, './');
     if (parsed.errors.length) {
         throw new Error(ts.formatDiagnostics(parsed.errors, diagHost));
     }
+
     return parsed;
 }
 
 /** @param {ts.ParsedCommandLine} tsConfig */
 function runTypeCheck(tsConfig) {
-    const entryFiles = ['src/api.mts', 'src/types.mts'];
+    const { entryFiles, outDir, rootDir } = config.ts;
 
     const compilerOptions = {
         ...tsConfig.options,
         noEmit: false,
         emitDeclarationOnly: true,
         declaration: true,
-        outDir: 'dist',
-        rootDir: 'src',
+        outDir,
+        rootDir,
     };
 
     if (isWatchMode) {
         console.log('Watching for type changes...');
-        const createProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram;
 
         const host = ts.createWatchCompilerHost(
             entryFiles,
             compilerOptions,
             ts.sys,
-            createProgram,
-            (diag) => console.error(ts.formatDiagnosticsWithColorAndContext([diag], diagHost)),
+            ts.createEmitAndSemanticDiagnosticsBuilderProgram,
+            (diag) =>
+                console.error(ts.formatDiagnosticsWithColorAndContext([diag], diagHost)),
             (status) => console.log(ts.formatDiagnostic(status, diagHost))
         );
 
@@ -59,7 +61,9 @@ function runTypeCheck(tsConfig) {
         const diagnostics = ts.getPreEmitDiagnostics(program);
 
         if (diagnostics.length) {
-            console.error(ts.formatDiagnosticsWithColorAndContext(diagnostics, diagHost));
+            console.error(
+                ts.formatDiagnosticsWithColorAndContext(diagnostics, diagHost)
+            );
             process.exit(1);
         }
 
@@ -68,38 +72,27 @@ function runTypeCheck(tsConfig) {
 }
 
 function cleanupDeclarations() {
-    const distPath = 'dist';
-    const KEEP = new Set(['api.d.mts']);
+    const { outDir, keepDeclarations } = config.ts;
 
-    if (!existsSync(distPath)) return;
+    if (!existsSync(outDir)) return;
 
-    for (const file of readdirSync(distPath)) {
-        if (file.endsWith('.d.mts') && !KEEP.has(file)) {
-            rmSync(`${distPath}/${file}`);
+    for (const file of readdirSync(outDir)) {
+        if (file.endsWith('.d.mts') && !keepDeclarations.has(file)) {
+            rmSync(`${outDir}/${file}`);
         }
     }
 }
 
 async function runBundling() {
-    const commonConfig = {
-        bundle: true,
-        minify: !isWatchMode,
-        platform: 'node',
-        format: 'esm',
-        logLevel: 'info',
-    };
+    const { common, entries } = config.esbuild;
 
-    const entryPoints = [
-        { in: 'src/cli.mts', out: 'dist/zorvix.min.mjs', banner: { js: '#!/usr/bin/env node' } },
-        { in: 'src/api.mts', out: 'dist/api.min.mjs' }
-    ];
-
-    for (const entry of entryPoints) {
+    for (const entry of entries) {
         const ctx = await esbuild.context({
-            ...commonConfig,
+            ...common,
             entryPoints: [entry.in],
             outfile: entry.out,
-            banner: entry.banner,
+            banner: entry.banner ? { js: entry.banner } : undefined,
+            minify: !isWatchMode,
         });
 
         if (isWatchMode) {
