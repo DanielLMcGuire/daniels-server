@@ -2,8 +2,7 @@ import path                                from 'path';
 import { IncomingMessage, ServerResponse } from 'http';
 import { serveBufferFile, serveStreamFile } from '#zorvix/serve';
 import { isAttachment, cacheControlFor }    from '#zorvix/mime';
-import { MAX_HEADERS_COUNT, MAX_URL_LENGTH } from '#zorvix/types';
-import type { CachedFile }                  from '#zorvix/types';
+import type { CachedFile } from '#zorvix/types';
 
 type GetFile      = (filepath: string) => Promise<CachedFile | null>;
 type DevToolsFn   = (req: IncomingMessage, res: ServerResponse, method: string) => void;
@@ -21,28 +20,6 @@ export function resolveFilePath(url: string | undefined, root: string): string |
     const resolved = path.resolve(root, '.' + decoded);
     if (resolved !== root && !resolved.startsWith(root + path.sep)) return null;
     return resolved;
-}
-
-export function rejectRequest(
-    req:     IncomingMessage,
-    res:     ServerResponse,
-    logging: boolean,
-): boolean {
-    if ((req.url?.length ?? 0) > MAX_URL_LENGTH) {
-        res.writeHead(414, { 'Content-Type': 'text/plain' });
-        res.end('414 URI Too Long');
-        if (logging) console.log(`Server: 414 (URL too long: ${req.url?.length} bytes) ${req.url?.slice(0, 80)}…`);
-        return true;
-    }
-
-    if (Object.keys(req.headers).length > MAX_HEADERS_COUNT) {
-        res.writeHead(431, { 'Content-Type': 'text/plain' });
-        res.end('431 Request Header Fields Too Large');
-        if (logging) console.log(`Server: 431 (${Object.keys(req.headers).length} headers) ${req.url}`);
-        return true;
-    }
-
-    return false;
 }
 
 export function createStaticHandler(

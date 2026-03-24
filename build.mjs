@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import esbuild from 'esbuild';
 import ts from 'typescript';
-import { existsSync, readdirSync, rmSync } from 'fs';
+import { existsSync, readdirSync, renameSync, rmSync } from 'fs';
+import { join } from 'path';
 import config from './build.config.mjs';
 
 const isWatchMode = config.flags.watch;
@@ -83,6 +84,30 @@ function cleanupDeclarations() {
     }
 }
 
+function flattenDeclarations() {
+    const { outDir } = config.ts;
+    const stack = [outDir];
+    while (stack.length) {
+        const dir = stack.pop();
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+            const full = join(dir, entry.name);
+            if (entry.isDirectory()) {
+                stack.push(full);
+            } else if (
+                entry.name.endsWith('.d.mts') ||
+                entry.name.endsWith('.d.mts.map') ||
+                entry.name.endsWith('.d.ts') ||
+                entry.name.endsWith('.d.ts.map')
+            ) {
+                if (dir !== outDir) renameSync(full, join(outDir, entry.name));
+            }
+        }
+    }
+    for (const entry of readdirSync(outDir, { withFileTypes: true })) {
+        if (entry.isDirectory()) rmSync(join(outDir, entry.name), { recursive: true });
+    }
+}
+
 async function runBundling() {
     const { common, entries } = config.esbuild;
 
@@ -108,6 +133,7 @@ async function build() {
     try {
         const tsConfig = loadConfig();
         runTypeCheck(tsConfig);
+        flattenDeclarations();
         cleanupDeclarations();
         await runBundling();
 

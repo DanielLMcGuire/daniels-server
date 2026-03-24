@@ -1,6 +1,6 @@
 {
     "name": "zorvix",
-    "version": "1.1.6",
+    "version": "1.2.0",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
@@ -43,18 +43,22 @@
         "dist/"
     ],
     "imports": {
-        "#zorvix/api": "./src/api.mts",
-        "#zorvix/api-types": "./src/api-types.mts",
-        "#zorvix/cache": "./src/cache.mts",
-        "#zorvix/cluster": "./src/cluster.mts",
-        "#zorvix/cli": "./src/cli.mts",
-        "#zorvix/devtools": "./src/devtools.mts",
-        "#zorvix/mime": "./src/mime.mts",
-        "#zorvix/range": "./src/range.mts",
-        "#zorvix/router": "./src/router.mts",
-        "#zorvix/serve": "./src/serve.mts",
-        "#zorvix/static": "./src/static.mts",
-        "#zorvix/tls": "./src/tls.mts",
+        "#zorvix/api": "./src/server/api.mts",
+        "#zorvix/api-types": "./src/server/api-types.mts",
+        "#zorvix/devtools": "./src/server/devtools.mts",
+        "#zorvix/middleware": "./src/server/middleware.mts",
+        "#zorvix/router": "./src/server/router.mts",
+        "#zorvix/tls": "./src/server/tls.mts",
+
+        "#zorvix/cache": "./src/static/cache.mts",
+        "#zorvix/mime": "./src/static/mime.mts",
+        "#zorvix/range": "./src/static/range.mts",
+        "#zorvix/serve": "./src/static/serve.mts",
+        "#zorvix/static": "./src/static/static.mts",
+
+        "#zorvix/cluster": "./src/process/cluster.mts",
+        "#zorvix/cli": "./src/process/cli.mts",
+        
         "#zorvix/types": "./src/types.mts",
         "#zorvix/mimetypes": "./resources/server-mimetypes.json",
         "#zorvix/pkg": "./package.json"
