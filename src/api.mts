@@ -55,10 +55,6 @@ export interface ServerOptions {
 }
 
 export interface ServerInstance {
-    // -----------------------------------------------------------------------
-    // Middleware
-    // -----------------------------------------------------------------------
-
     /**
      * Register a request handler that runs *before* static-file serving.
      * Handlers are called in registration order; call `next()` to continue
@@ -67,6 +63,7 @@ export interface ServerInstance {
      * Returns `this` for chaining.
      */
     use(handler: RequestHandler): this;
+
     /**
      * Register a path-prefixed request handler.  The handler is only invoked
      * when the request URL starts with `mountPath`.  `req.url` is **not**
@@ -74,17 +71,6 @@ export interface ServerInstance {
      * Returns `this` for chaining.
      */
     use(mountPath: string, handler: RequestHandler): this;
-
-    // -----------------------------------------------------------------------
-    // REST route methods
-    //
-    // `routePath` supports:
-    //   - Exact segments:   '/api/users'
-    //   - Named parameters: '/api/users/:id'        → req.params.id
-    //   - Wildcards:        '/static/*'             → req.params['0']
-    //
-    // All methods return `this` for chaining.
-    // -----------------------------------------------------------------------
 
     /** Register a handler for GET `routePath`. */
     get(routePath: string, handler: RequestHandler): this;
@@ -101,10 +87,6 @@ export interface ServerInstance {
     /** Register a handler for OPTIONS `routePath`. */
     options(routePath: string, handler: RequestHandler): this;
 
-    // -----------------------------------------------------------------------
-    // Lifecycle
-    // -----------------------------------------------------------------------
-
     /**
      * Start listening.  Resolves once the server is bound and ready to accept
      * connections.  Rejects if the server is already listening, if the port is
@@ -118,10 +100,6 @@ export interface ServerInstance {
      * closed.
      */
     stop(): Promise<void>;
-
-    // -----------------------------------------------------------------------
-    // Read-only properties
-    // -----------------------------------------------------------------------
 
     /** The resolved absolute path being served. */
     readonly root:      string;
