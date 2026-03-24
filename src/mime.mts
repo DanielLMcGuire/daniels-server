@@ -43,5 +43,11 @@ export function isAttachment(ext: string): boolean {
 }
 
 export function cacheControlFor(ext: string): string {
-    return ext === '.html' ? 'no-cache' : 'public, max-age=3600, must-revalidate';
+    const noCache = new Set(['.html', '.htm', '.md', '.markdown', '.txt', '.json']);
+    const shortCache = new Set(['.css', '.js', '.svg', '.ico']);
+    
+    if (noCache.has(ext)) return 'no-cache';
+    if (shortCache.has(ext)) return 'public, max-age=3600, must-revalidate';
+    
+    return 'public, max-age=3600, must-revalidate';
 }
