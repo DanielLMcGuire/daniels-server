@@ -24,7 +24,7 @@ const tlsKey     = tlsKeyIdx  !== -1 ? process.argv[tlsKeyIdx  + 1] : undefined;
 const tlsCert    = tlsCertIdx !== -1 ? process.argv[tlsCertIdx + 1] : undefined;
 
 function printHelp(ret: number): never {
-    console.log('Usage: node zorvix.min.mjs [port] [options]');
+    console.log('Usage: zorvix [port] [options]');
     console.log('Options:');
     console.log('  -r, --root <dir>  Set the host root directory (default: working dir)');
     console.log('  -l, --log         Enable request logging');
