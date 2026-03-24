@@ -6,11 +6,11 @@
     "author": "Daniel McGuire",
     "type": "module",
     "bugs": {
-        "url": "https://github.com/DanielLMcGuire/zorvix/issues"
+        "url": "https://github.com/DanielLMcGuire/Zorvix/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/DanielLMcGuire/zorvix.git"
+        "url": "git+https://github.com/DanielLMcGuire/Zorvix.git"
     },
     "bin": {
         "zorvix": "dist/zorvix.min.mjs"
