@@ -328,42 +328,38 @@ export function createServer(options: ServerOptions): ServerInstance {
         while (index < handlerEntries.length) {
             const entry = handlerEntries[index];
 
+            let matches = false;
             if (entry.kind === 'middleware') {
-                if (entry.mountPath === null || urlMatchesMount(req.url, entry.mountPath)) break;
-            } else {
-                if (entry.method === (req.method ?? 'GET').toUpperCase()) {
-                    const params = matchRoute(req.url, entry.regex, entry.paramNames);
-                    if (params !== null) {
-                        req.params = params;
-                        break;
-                    }
+                matches = entry.mountPath === null || urlMatchesMount(req.url, entry.mountPath);
+            } else if (entry.method === (req.method ?? 'GET').toUpperCase()) {
+                const params = matchRoute(req.url, entry.regex, entry.paramNames);
+                if (params !== null) {
+                    req.params = params;
+                    matches = true;
                 }
             }
 
-            index++;
-        }
+            if (!matches) { index++; continue; }
 
-        if (index >= handlerEntries.length) {
-            if (res.writableEnded) return;
-
-            const method = req.method ?? 'GET';
-            if (method === 'GET' || method === 'HEAD') {
-                await serveStatic(req, res);
-            } else {
-                const allow = allowedMethodsFor(req.url, handlerEntries);
-                res.writeHead(405, { Allow: allow, 'Content-Type': 'text/plain' });
-                res.end('405 Method Not Allowed');
-                if (logging) console.log(`Server: 405 ${method} ${req.url}`);
-            }
+            await entry.handler(req, res, (err?: unknown) => {
+                if (err !== undefined) return Promise.reject(err);
+                if (res.writableEnded) return Promise.resolve();
+                return runHandlers(req, res, index + 1);
+            });
             return;
         }
 
-        const { handler } = handlerEntries[index];
-        await handler(req, res, (err?: unknown) => {
-            if (err !== undefined) return Promise.reject(err);
-            if (res.writableEnded) return Promise.resolve();
-            return runHandlers(req, res, index + 1);
-        });
+        if (res.writableEnded) return;
+
+        const method = req.method ?? 'GET';
+        if (method === 'GET' || method === 'HEAD') {
+            await serveStatic(req, res);
+        } else {
+            const allow = allowedMethodsFor(req.url, handlerEntries);
+            res.writeHead(405, { Allow: allow, 'Content-Type': 'text/plain' });
+            res.end('405 Method Not Allowed');
+            if (logging) console.log(`Server: 405 ${method} ${req.url}`);
+        }
     }
 
     const httpServer = useTls
@@ -423,7 +419,9 @@ export function createServer(options: ServerOptions): ServerInstance {
             if (typeof pathOrHandler === 'function') {
                 handlerEntries.push({ kind: 'middleware', mountPath: null, handler: pathOrHandler });
             } else {
-                if (!maybeHandler) throw new TypeError('use(path, handler): handler is required');
+                if (!maybeHandler) throw new TypeError(
+`use("${pathOrHandler}", handler): expected a handler function as the second argument, got ${typeof maybeHandler}`
+                );
                 handlerEntries.push({
                     kind:      'middleware',
                     mountPath: normaliseMountPath(pathOrHandler),
@@ -474,6 +472,7 @@ export function createServer(options: ServerOptions): ServerInstance {
                     isListening = false;
                     resolve();
                 });
+                httpServer.closeAllConnections();
             });
         },
     };
