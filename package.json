@@ -43,16 +43,17 @@
         "dist/"
     ],
     "imports": {
-        "#zorvix/primary": "./src/primary.mts",
-        "#zorvix/worker": "./src/worker.mts",
-        "#zorvix/cache": "./src/cache.mts",
-        "#zorvix/serve": "./src/serve.mts",
-        "#zorvix/mime": "./src/mime.mts",
-        "#zorvix/range": "./src/range.mts",
-        "#zorvix/devtools": "./src/devtools.mts",
-        "#zorvix/types": "./src/types.mts",
         "#zorvix/api": "./src/api.mts",
-        "#zorvix/mimetypes": "./resources/server-mimetypes.json"
+        "#zorvix/cache": "./src/cache.mts",
+        "#zorvix/devtools": "./src/devtools.mts",
+        "#zorvix/mime": "./src/mime.mts",
+        "#zorvix/primary": "./src/primary.mts",
+        "#zorvix/range": "./src/range.mts",
+        "#zorvix/serve": "./src/serve.mts",
+        "#zorvix/static": "./src/static.mts",
+        "#zorvix/types": "./src/types.mts",
+        "#zorvix/mimetypes": "./resources/server-mimetypes.json",
+        "#zorvix/worker": "./src/worker.mts"
     },
     "scripts": {
         "build": "node build.mjs",
