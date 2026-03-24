@@ -32,7 +32,10 @@ export interface ServerOptions {
     root?:     string;
     /** Log requests and cache activity to stdout. Default: `false`. */
     logging?:  boolean;
-    /** Enable Chrome DevTools workspace integration. Default: `false`. */
+    /** 
+     * Enable Chrome DevTools workspace integration. Default: `false`. 
+     * https://developer.chrome.com/docs/devtools/workspaces/?utm_source=devtools
+     * */
     devTools?: boolean;
     /**
      * PEM-encoded TLS private key — either a file-system path (string) or the
