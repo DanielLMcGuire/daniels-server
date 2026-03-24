@@ -16,7 +16,7 @@ const config = {
         entryFiles: [pkg.imports['#zorvix/api'], pkg.imports['#zorvix/cli']],
         outDir: 'dist',
         rootDir: 'src',
-        keepDeclarations: new Set(['api.d.mts', 'api-types.d.mts']),
+        keepDeclarations: new Set(['api-types.d.mts']),
     },
 
     esbuild: {
