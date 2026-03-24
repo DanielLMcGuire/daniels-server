@@ -44,11 +44,13 @@
     ],
     "imports": {
         "#zorvix/api": "./src/api.mts",
+        "#zorvix/api-types": "./src/api-types.mts",
         "#zorvix/cache": "./src/cache.mts",
         "#zorvix/devtools": "./src/devtools.mts",
         "#zorvix/mime": "./src/mime.mts",
         "#zorvix/primary": "./src/primary.mts",
         "#zorvix/range": "./src/range.mts",
+        "#zorvix/router": "./src/router.mts",
         "#zorvix/serve": "./src/serve.mts",
         "#zorvix/static": "./src/static.mts",
         "#zorvix/types": "./src/types.mts",
