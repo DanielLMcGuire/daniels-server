@@ -7,7 +7,8 @@
 )](https://github.com/DanielLMcGuire/Zorvix/actions/workflows/ci.yml?query=event%3Apush+branch%3Amaster)
 
 
-A zero-dependency Node.js static file server with support for clustering, TLS, HTTP caching, range requests, gzip, and Chrome DevTools workspace integration.
+A zero-dependency Node.js static file / REST routing server with support for clustering, TLS, HTTP caching, range requests, gzip, and Chrome DevTools workspace integration.
+
 
 ---
 
@@ -174,7 +175,7 @@ await server.stop();
 
 ### Route paths
 
-Route paths passed to the method helpers support two dynamic segments:
+Route paths passed to the method helpers support two segments:
 
 | Syntax | Example | Captured as |
 |---|---|---|
