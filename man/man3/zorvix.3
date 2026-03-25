@@ -1,0 +1,550 @@
+.TH ZORVIX 3 "2025" "zorvix 1.3.2" "Node.js Library Functions"
+zorvix \- Node.js API for embedding a static HTTP/HTTPS server with REST routing
+.nf
+.B import { createServer } from 'zorvix';
+.PP
+.BI "const server = createServer(" options ");"
+.PP
+.BI "server.use(" handler ");"
+.BI "server.use(" path ", " handler ");"
+.PP
+.BI "server.get(" routePath ", " handler ");"
+.BI "server.post(" routePath ", " handler ");"
+.BI "server.put(" routePath ", " handler ");"
+.BI "server.patch(" routePath ", " handler ");"
+.BI "server.delete(" routePath ", " handler ");"
+.BI "server.head(" routePath ", " handler ");"
+.BI "server.options(" routePath ", " handler ");"
+.PP
+.BI "await server.start();"
+.BI "await server.stop();"
+.fi
+.SH DESCRIPTION
+The
+.B zorvix
+package exports a single factory function,
+.BR createServer() ,
+that creates an HTTP or HTTPS server combining static file serving with
+Express-style route registration and middleware.
+.PP
+The returned
+.B ServerInstance
+object exposes methods for registering middleware and routes and for
+controlling the server lifecycle.
+All registration methods return
+.I this
+so that calls may be chained.
+Unmatched
+.B GET
+and
+.B HEAD
+requests automatically fall through to the built-in static file handler.
+Any other method that is not matched by a registered route returns
+.B "405 Method Not Allowed"
+with an
+.B Allow
+header.
+.SH TYPES
+The package ships a bundled TypeScript declaration file.
+The types listed here are also valid TypeScript interfaces.
+.SH createServer(options)
+.TP
+.B Signature
+.nf
+createServer(options: ServerOptions): ServerInstance
+.fi
+.PP
+Creates and configures a server instance.
+No socket is bound until
+.BR server.start() ,
+but middleware and routes may be registered immediately after this call.
+.PP
+When
+.B options.workers
+is
+.B true
+and the calling process is the cluster primary,
+.BR createServer ()
+returns a lightweight primary-only instance whose route-registration
+methods are accepted but silently discarded (the primary never dispatches
+requests).
+The worker process re-executes the same entry-point, calls
+.BR createServer ()
+again, and this time receives a full server instance.
+.SH ServerOptions
+.TP
+.B port \fI(number, required)\fR
+TCP port to listen on.
+.TP
+.B root \fI(string, optional)\fR
+Directory from which static files are served.
+Resolved to an absolute path via
+.BR path.resolve (3js).
+Defaults to
+.BR process.cwd() .
+.TP
+.B logging \fI(boolean, optional)\fR
+When
+.BR true ,
+each incoming request is logged as
+.B Client:\~METHOD\~URL
+and significant server events (cache activity, gzip timing, DevTools
+connection, start/stop) are written to stdout.
+Default:
+.BR false .
+.TP
+.B devTools \fI(boolean, optional)\fR
+When
+.BR true ,
+a JSON endpoint is registered at
+.sp
+.in +4n
+.EX
+/.well-known/appspecific/com.chrome.devtools.json
+.EE
+.in
+.sp
+The response is a gzip-compressed JSON object containing the workspace
+.B root
+and a randomly-generated
+.B uuid
+that scopes the endpoint for this server process.
+Default:
+.BR false .
+.TP
+.B workers \fI(boolean, optional)\fR
+Enable cluster mode.
+When
+.B true
+and the process is the cluster primary,
+.BR createServer ()
+returns a primary-only stub and forks a worker.
+The worker re-calls
+.BR createServer ()
+and becomes the HTTP server.
+The primary supervises the worker and restarts it after 500\~ms on
+unexpected exit.
+Default:
+.BR false .
+.TP
+.B key \fI(string\~|\~Buffer, optional)\fR
+PEM-encoded TLS private key, supplied either as a filesystem path (string)
+or as already-loaded key material (Buffer).
+Must be supplied together with
+.BR cert .
+When both
+.B key
+and
+.B cert
+are present the server uses
+.B https.createServer
+instead of
+.BR http.createServer .
+.TP
+.B cert \fI(string\~|\~Buffer, optional)\fR
+PEM-encoded TLS certificate, supplied as a filesystem path or Buffer.
+Must be supplied together with
+.BR key .
+.SH ServerInstance
+.SS server.use(handler)
+.SS server.use(path, handler)
+.PP
+Register a middleware function.
+.PP
+.nf
+.B server.use(handler: RequestHandler): ServerInstance
+.B server.use(path: string, handler: RequestHandler): ServerInstance
+.fi
+.PP
+Without a
+.I path
+argument the handler runs for every request.
+With a
+.I path
+argument it runs only when the request URL equals
+.I path
+or starts with
+.IR path /
+(the prefix is normalised to have a leading slash and no trailing slash).
+.PP
+Middleware runs in registration order, before route handlers and before
+static file serving.
+A middleware handler must either end the response or call
+.B next()
+to pass control to the next handler in the chain.
+Passing a value to
+.B next(err)
+aborts the chain; the error propagates to the top-level handler, which
+returns
+.BR "500 Internal Server Error"
+if the response has not yet been sent.
+.PP
+Returns
+.I this
+for chaining.
+Throws
+.B TypeError
+when a
+.I path
+is given without a corresponding
+.IR handler .
+
+.SS Route registration methods
+.PP
+Each of the following methods registers a handler for requests that match
+the given HTTP method and
+.IR routePath :
+.PP
+.nf
+.B server.get(routePath: string, handler: RequestHandler): ServerInstance
+.B server.post(routePath: string, handler: RequestHandler): ServerInstance
+.B server.put(routePath: string, handler: RequestHandler): ServerInstance
+.B server.patch(routePath: string, handler: RequestHandler): ServerInstance
+.B server.delete(routePath: string, handler: RequestHandler): ServerInstance
+.B server.head(routePath: string, handler: RequestHandler): ServerInstance
+.B server.options(routePath: string, handler: RequestHandler): ServerInstance
+.fi
+.PP
+All return
+.I this
+for chaining.
+.PP
+Route paths are compiled into regular expressions at registration time.
+The supported pattern syntax is:
+.TP
+.BI : name
+Matches a single path segment (no slashes).
+The captured value is available as
+.BR req.params. \fIname\fR.
+.TP
+.B *
+Matches everything including slashes.
+The captured value is available as
+.B req.params['0']
+(the index increments for each wildcard in the pattern).
+.PP
+All other regex-special characters in the route path are escaped before
+compilation.
+.SS server.start()
+.PP
+.nf
+.B server.start(): Promise<void>
+.fi
+.PP
+Binds the server to the configured port and begins accepting connections.
+Also starts the in-memory cache pruning interval.
+.PP
+Returns a
+.B Promise
+that resolves once the server is listening, or rejects if the port cannot
+be bound (e.g.\&
+.BR EADDRINUSE )
+or if the server is already listening.
+.PP
+In cluster mode (primary process), resolves after the worker process has
+been forked; the actual socket is not bound until the worker calls
+.BR start() .
+.SS server.stop()
+.PP
+.nf
+.B server.stop(): Promise<void>
+.fi
+.PP
+Gracefully stops the server.
+Idle connections are closed immediately.
+Active connections are given 5\~seconds to finish; any still open after
+that grace period are forcibly terminated.
+.PP
+Returns a
+.B Promise
+that resolves once the server has fully stopped, or immediately if it was
+not listening.
+.PP
+In cluster mode (primary process), sends
+.B SIGINT
+to each worker and resolves once all workers have exited.
+.SS server.root \fI(readonly string)\fR
+.PP
+The resolved absolute path of the static-file root directory.
+.SS server.port \fI(readonly number)\fR
+.PP
+The port number passed to
+.BR createServer() .
+.SS server.listening \fI(readonly boolean)\fR
+.PP
+.B true
+between a successful
+.BR server.start()
+and the completion of
+.BR server.stop() .
+.SS server.server \fI(readonly http.Server\~|\~https.Server)\fR
+.PP
+The underlying Node.js
+.B http.Server
+or
+.B https.Server
+instance.
+Useful for attaching socket-level event listeners or for integrating with
+WebSocket libraries.
+.PP
+Accessing this property from the cluster primary process throws
+.BR Error .
+.SH RequestHandler
+.nf
+.B type RequestHandler = (
+.B "    req:  http.IncomingMessage,"
+.B "    res:  http.ServerResponse,"
+.B "    next: NextFunction,"
+.B ) => void | Promise<void>
+.PP
+.B type NextFunction = (err?: unknown) => void | Promise<void>
+.fi
+.PP
+Handler functions receive the standard Node.js
+.B IncomingMessage
+and
+.B ServerResponse
+objects, augmented with the following field:
+.TP
+.B req.params \fI(Record<string, string>)\fR
+Named URL parameters extracted from the matched route pattern.
+Always present as an empty object
+.B {}
+for middleware and static-file requests that did not match a named route.
+.TP
+.B req.body \fI(unknown | undefined)\fR
+Parsed request body.
+.B undefined
+until a body-parsing middleware populates it.
+Type-narrowing is the caller's responsibility.
+.SH HANDLER EXECUTION ORDER
+Handlers are executed strictly in registration order:
+.PP
+.nf
+global middleware
+  → path-prefixed middleware (when URL matches prefix)
+    → matching method route
+      → static file serving  (GET / HEAD only)
+.fi
+.PP
+.B GET
+and
+.B HEAD
+requests that do not match any registered route fall through to static
+file serving.
+Any other method that reaches the end of the chain without being handled
+returns
+.B "405 Method Not Allowed"
+with an
+.B Allow
+header containing the methods for which a route is registered on that path.
+.SH STATIC FILE SERVING
+Unmatched
+.B GET
+and
+.B HEAD
+requests are handled by the built-in static file layer:
+.TP
+.B ETag / Last-Modified
+Every response includes
+.B ETag
+(SHA-1 digest for cached files; mtime-based for large streamed files) and
+.B Last-Modified
+headers.
+.B If-None-Match
+and
+.B If-Modified-Since
+are honoured with
+.B "304 Not Modified"
+responses.
+.TP
+.B Range requests
+.B Accept-Ranges: bytes
+is advertised.
+.B Range
+and
+.B If-Range
+headers are supported.
+Multi-range requests return
+.BR "501 Not Implemented" .
+.TP
+.B Gzip
+Compressible MIME types are compressed when the client sends
+.BR "Accept-Encoding: gzip" .
+.TP
+.B Content-Disposition
+Binary / archive MIME types are served with
+.B "Content-Disposition: attachment"
+so that browsers download rather than render them.
+.TP
+.B Path traversal
+Resolved paths that escape the root return
+.BR "400 Bad Request" .
+.SH BUILT-IN MIDDLEWARE
+Two middleware functions are always registered internally, in order, before
+any user-supplied handlers:
+.TP
+.B Logging middleware
+Present only when
+.B options.logging
+is
+.BR true .
+Prints
+.B Client:\~METHOD\~URL
+for each request.
+.TP
+.B Guard middleware
+Always present.
+Rejects URLs longer than 2048\~bytes with
+.B "414 URI Too Long"
+and requests with more than 50 headers with
+.BR "431 Request Header Fields Too Large" .
+.SH ERRORS
+.TP
+.B TypeError: use(path, handler): handler is required
+.BR server.use ()
+was called with a string path but no handler argument.
+.TP
+.B Error: Server is already listening
+.BR server.start ()
+was called on an already-started server instance.
+.TP
+.B Error: [zorvix] .server is not available in the cluster primary process
+.B server.server
+was accessed from within the cluster primary.
+Use it from the worker instead.
+.TP
+.B EADDRINUSE
+The configured port is already in use.
+The promise returned by
+.BR server.start ()
+rejects with this OS error.
+.SH EXAMPLES
+.SS Minimal HTTP server
+.nf
+import { createServer } from 'zorvix';
+
+const server = createServer({ port: 3000 });
+await server.start();
+.fi
+.SS Static server with logging and a custom route
+.nf
+import { createServer } from 'zorvix';
+
+const server = createServer({
+    port:    8080,
+    root:    './public',
+    logging: true,
+});
+
+server.get('/healthz', (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('ok');
+});
+
+await server.start();
+.fi
+.SS Global and path-scoped middleware
+.nf
+import { createServer } from 'zorvix';
+
+const server = createServer({ port: 3000, logging: true });
+
+// Runs for every request
+server.use((req, res, next) => {
+    res.setHeader('X-Custom-Header', 'hello');
+    next();
+});
+
+// Runs only when URL starts with /api
+server.use('/api', (req, res, next) => {
+    if (!req.headers['x-api-key']) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Unauthorised' }));
+        return;
+    }
+    next();
+});
+
+server
+    .get('/api/users', (req, res) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify([{ id: 1, name: 'Alice' }]));
+    })
+    .get('/api/users/:id', (req, res) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ id: req.params.id }));
+    })
+    .delete('/api/users/:id', (req, res) => {
+        res.writeHead(204);
+        res.end();
+    });
+
+await server.start();
+.fi
+.SS HTTPS with pre-loaded key material
+.nf
+import { createServer } from 'zorvix';
+import fs from 'node:fs';
+
+const server = createServer({
+    port: 443,
+    key:  fs.readFileSync('./certs/server.key'),
+    cert: fs.readFileSync('./certs/server.crt'),
+});
+
+await server.start();
+.fi
+.SS Cluster mode
+.nf
+import { createServer } from 'zorvix';
+
+// Both the primary and the worker call createServer().
+// In the primary, a lightweight stub is returned and a worker is forked.
+// In the worker, the full server is created and starts listening.
+const server = createServer({ port: 3000, workers: true });
+
+server.get('/hello', (req, res) => res.end('Hello, world!'));
+
+await server.start();
+.fi
+.SS Graceful shutdown on SIGTERM
+.nf
+import { createServer } from 'zorvix';
+
+const server = createServer({ port: 3000 });
+await server.start();
+
+process.on('SIGTERM', async () => {
+    await server.stop();
+    process.exit(0);
+});
+.fi
+.SS Accessing the underlying Node.js server
+.nf
+import { createServer } from 'zorvix';
+import { WebSocketServer } from 'ws';
+
+const server = createServer({ port: 3000 });
+await server.start();
+
+// Attach a WebSocket server to the same http.Server
+const wss = new WebSocketServer({ server: server.server });
+wss.on('connection', (ws) => ws.send('connected'));
+.fi
+.SH REQUIREMENTS
+Node.js 22 or later.
+No runtime npm dependencies.
+TypeScript typings are included in the package.
+.SH SEE ALSO
+.BR zorvix (1),
+.BR node (1),
+.BR http (7)
+.SH BUGS
+Report bugs at
+.UR https://github.com/DanielLMcGuire/Zorvix/issues
+.UE .
+.SH AUTHOR
+Daniel McGuire.
+.SH LICENSE
+MIT License.

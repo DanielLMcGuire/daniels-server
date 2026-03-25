@@ -14,36 +14,32 @@ function checkDocker() {
 
 function runBuild() {
   const cwd = process.cwd();
-
   const script = `
 set -euo pipefail
-
 find /data -type f -regex '.*\\.[0-9]' | while read -r f; do
     dos2unix "$f"
-    echo "man2pdf: converting file $f to \${f}.pdf"
-    groff -t -man -Tpdf "$f" > "\${f}.pdf"
+    echo "man2md: converting file $f to \${f}.md"
+    pandoc -f man -t markdown "$f" -o "\${f}.md"
 done
 `;
-
   const result = spawnSync(
     "docker",
     [
       "run",
       "--rm",
       "-v",
-      `${cwd}:/data`,
+      `${cwd}/man:/data`,
       "ubuntu",
       "bash",
       "-c",
       `
 apt-get update -qq &&
-apt-get install -y -qq groff ghostscript dos2unix &&
+apt-get install -y -qq pandoc dos2unix &&
 ${script}
       `,
     ],
     { stdio: "inherit" }
   );
-
   process.exit(result.status ?? 0);
 }
 

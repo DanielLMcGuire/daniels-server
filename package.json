@@ -1,6 +1,6 @@
 {
     "name": "zorvix",
-    "version": "1.3.2",
+    "version": "1.4.0",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
@@ -40,7 +40,8 @@
         "node": ">=22.0.0"
     },
     "files": [
-        "dist/"
+        "dist/",
+        "man/"
     ],
     "imports": {
         "#zorvix/types": "./src/public-types.mts",
@@ -67,15 +68,18 @@
         "#zorvix/pkg": "./package.json"
     },
     "scripts": {
-        "build": "node build.mjs",
-        "build:dev": "node build.mjs --watch",
-        "build:docs": "cd docs && node build.mjs",
-        "start": "node dist/zorvix.min.mjs",
-        "prepublishOnly": "npm run test && npm run build",
+        "build": "npm run build:src && npm run build:man",
+        "build:dev": "npm run build:srcdev",
+        "build:prod": "npm run test && npm run build",
+        "build:src": "node build.mjs",
+        "build:srcdev": "node build.mjs --watch",
+        "build:man": "node build-man.mjs",
         "test": "npx tsx --test tests/*.test.mts",
         "test:range": "node --test tests/range.test.mts",
         "test:mime": "node --test tests/mime.test.mts",
-        "test:server": "node --test tests/server.test.mts"
+        "test:server": "node --test tests/server.test.mts",
+        "start": "node dist/zorvix.min.mjs",
+        "prepublishOnly": "npm run build:prod"
     },
     "devDependencies": {
         "@types/node": "^25.0.0",

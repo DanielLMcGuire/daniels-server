@@ -1,0 +1,360 @@
+.TH ZORVIX 1 "2025" "zorvix 1.3.2" "User Commands"
+zorvix \- static HTTP/HTTPS file server with REST routing and cluster support
+.B zorvix
+.I port
+.RB [ \-r | \-\-root
+.IR dir ]
+.RB [ \-l | \-\-log ]
+.RB [ \-\-dev ]
+.RB [ \-dt | \-\-devtools | \-\-chrome ]
+.RB [ \-\-key
+.IR file ]
+.RB [ \-\-cert
+.IR file ]
+.RB [ \-v | \-\-version ]
+.RB [ \-h | \-\-help ]
+.SH DESCRIPTION
+.B zorvix
+is a zero-dependency Node.js static file server.
+It serves files from a local directory over HTTP or HTTPS, handles
+conditional and range requests, compresses responses with gzip when the
+client supports it, and optionally registers the served directory as a
+Chrome DevTools workspace.
+.PP
+When run without
+.BR \-\-dev ,
+.B zorvix
+automatically forks a supervised cluster worker.
+The primary process acts as a watchdog: if the worker exits unexpectedly it
+is restarted after a 500\~ms delay.
+Workers that exit cleanly (e.g.\& in response to
+.BR SIGINT )
+are not restarted.
+.PP
+.I port
+is required and must be the first positional argument.
+.SH OPTIONS
+.TP
+.I port
+TCP port to listen on.
+Must be a positive integer.
+This argument is required and must appear before any option flags.
+.TP
+.BR \-r " \fIdir\fR, " \-\-root " \fIdir\fR"
+Directory to serve files from.
+The path is resolved to an absolute path relative to the current working
+directory.
+Defaults to
+.BR $PWD .
+Path traversal outside this root is blocked at the file-resolution layer;
+any request whose canonicalised path escapes the root receives a
+.B 400 Bad Request
+response.
+.TP
+.BR \-l ", " \-\-log
+Enable request logging.
+Each incoming request is printed as
+.B Client: METHOD URL
+before any handler runs.
+Cache activity (hits, misses, evictions, and additions), static-file
+serving events, gzip compression timings, and significant server events
+(start, shutdown) are also printed.
+.TP
+.BR \-\-dev
+Development mode.
+Disables the cluster worker and runs the HTTP server in-process.
+An uncaught exception causes the process to exit rather than being
+suppressed and restarted.
+Intended for local development; do not use in production.
+.TP
+.BR \-dt ", " \-\-devtools ", " \-\-chrome
+Enable Chrome DevTools workspace integration.
+.B zorvix
+serves a randomly-scoped JSON endpoint at
+.RS
+.PP
+.I /.well-known/appspecific/com.chrome.devtools.json
+.RE
+.IP
+The endpoint advertises the workspace root and a UUID.
+Connect by opening
+.B Sources \(-> Workspace
+in Chrome DevTools and clicking
+.BR Connect .
+The UUID changes on every process start, preventing accidental cross-session
+sharing.
+.TP
+.BR \-\-key " \fIfile\fR"
+Path to a PEM-encoded TLS private key.
+Must be supplied together with
+.BR \-\-cert .
+When both are present,
+.B zorvix
+switches the underlying server to
+.BR https.Server .
+The default port for HTTPS is 443; the startup log omits the port number
+when the bound port matches the protocol default.
+.TP
+.BR \-\-cert " \fIfile\fR"
+Path to a PEM-encoded TLS certificate.
+Must be supplied together with
+.BR \-\-key .
+.TP
+.BR \-v ", " \-\-version
+Print the version string (e.g.\&
+.BR "zorvix 1.3.2" )
+and exit with status 0.
+.TP
+.BR \-h ", " \-\-help
+Print a usage summary and exit with status 0.
+.SH STATIC FILE SERVING
+Requests that are not matched by a registered API route fall through to the
+static file handler.
+The following rules apply.
+.SS URL resolution
+.IP \(bu 2
+The URL path is decoded with
+.BR decodeURIComponent (3js).
+A malformed percent-escape returns
+.BR "400 Bad Request" .
+.IP \(bu 2
+The root
+.B /
+and missing paths default to
+.BR index.html .
+.IP \(bu 2
+Paths without a file extension are tried in order with the suffixes
+.BR .html ,
+.BR .htm ,
+.BR .json ,
+and
+.BR .txt .
+The first match that exists on disk is served.
+.IP \(bu 2
+Resolved paths must remain inside the configured root; any attempt to
+escape (e.g.\& via
+.BR ../
+sequences) returns
+.BR "400 Bad Request" .
+.SS Caching
+Files up to ~8\~MB are cached in memory with their SHA-1
+.B ETag
+and
+.B Last-Modified
+timestamps.
+Files larger than the cache threshold are read from disk on every request
+using a streaming read, with an mtime-based weak ETag.
+.PP
+Cached entries are evicted after approximately 80\~seconds of inactivity.
+.PP
+.B If-None-Match
+and
+.B If-Modified-Since
+are honoured; a matching request receives
+.B "304 Not Modified"
+without a body.
+.SS Compression
+When the client sends
+.B Accept-Encoding: gzip
+and the file's MIME type is compressible (HTML, CSS, JavaScript, JSON,
+SVG, XML, plain text, etc.), the response is gzip-compressed.
+Cached files store the compressed form alongside the raw buffer so that
+no per-request compression is needed.
+Large files that bypass the cache are compressed on the fly via a streaming
+pipeline.
+.SS Range requests
+.B Accept-Ranges: bytes
+is advertised on every file response.
+The
+.B Range
+header is parsed according to RFC\~7233.
+Multi-range requests (comma-separated ranges) return
+.BR "501 Not Implemented" .
+Unsatisfiable ranges return
+.BR "416 Range Not Satisfiable"
+with a
+.B Content-Range: bytes */\fItotal\fR
+header.
+The
+.B If-Range
+header is supported; if it does not match the current ETag, the full file
+is served instead.
+.SS Content-Disposition
+Binary and archive MIME types (executables, installers, disk images,
+archives, Office documents, etc.\&) are served with
+.sp
+.in +4n
+.EX
+Content-Disposition: attachment; filename="..."; filename*=UTF-8''...
+.EE
+.in
+.sp
+so that browsers prompt for download rather than attempting to render the
+file.
+.SS Method handling
+Only
+.B GET
+and
+.B HEAD
+requests reach the static handler.
+Unmatched requests with any other method return
+.B "405 Method Not Allowed"
+with an
+.B Allow
+header that lists the methods for which a route is actually registered on
+the requested path.
+.SH SECURITY
+.TP
+.B Path traversal prevention
+Every resolved file path is checked to ensure it begins with
+.I root
+followed by the platform path separator.
+Requests that escape the root are rejected with
+.BR "400 Bad Request" .
+.TP
+.B URI length limit
+URLs longer than 2048\~bytes are rejected with
+.BR "414 URI Too Long" .
+.TP
+.B Header count limit
+Requests carrying more than 50 headers are rejected with
+.BR "431 Request Header Fields Too Large" .
+.TP
+.B Connection timeouts
+The underlying Node.js server enforces a 10-second timeout for connections
+that do not send headers (slow-loris mitigation) and a 60-second timeout for
+stalled in-flight requests.
+.TP
+.B Graceful shutdown
+Sending
+.B SIGINT
+(Ctrl-C) initiates a graceful shutdown: idle connections are closed
+immediately and active connections are given 5\~seconds to finish before
+being forcibly terminated.
+A second
+.B SIGINT
+forces immediate process exit.
+In cluster mode the primary forwards
+.B SIGINT
+to all worker processes.
+.SH CLUSTER MODE
+By default (i.e.\& without
+.BR \-\-dev ),
+.B zorvix
+runs in cluster mode.
+.PP
+The first process to start becomes the \fIprimary\fR.
+It forks a single \fIworker\fR which binds to the configured port and
+handles all HTTP traffic.
+The primary never binds a socket itself; its sole responsibility is
+supervising the worker.
+.PP
+If the worker exits unexpectedly (crash, OOM kill, etc.\&), the primary
+waits 500\~ms and forks a new worker.
+Workers that exit with
+.B SIGINT
+or
+.B SIGTERM
+are considered clean exits and are not restarted.
+.PP
+When
+.B SIGINT
+is received by the primary, it broadcasts
+.B SIGINT
+to all workers and waits for them to exit before terminating.
+.SH EXIT STATUS
+.TP
+.B 0
+Success (includes
+.B \-\-help
+and
+.B \-\-version
+).
+.TP
+.B 1
+Argument error (missing or invalid
+.IR port ,
+missing companion flag for
+.B \-\-key
+/
+.BR \-\-cert ,
+etc.\&).
+.TP
+.B other
+Propagated from the cluster worker or the Node.js runtime.
+.SH EXAMPLES
+Serve the current directory on port 8080:
+.sp
+.in +4n
+.EX
+zorvix 8080
+.EE
+.in
+.PP
+Serve a specific directory with request logging enabled:
+.sp
+.in +4n
+.EX
+zorvix 3000 \-\-root ./dist \-l
+.EE
+.in
+.PP
+HTTPS on the standard port:
+.sp
+.in +4n
+.EX
+zorvix 443 \-\-key ./certs/server.key \-\-cert ./certs/server.crt
+.EE
+.in
+.PP
+Local development — single process, logging, DevTools workspace:
+.sp
+.in +4n
+.EX
+zorvix 8080 \-\-dev \-l \-\-devtools
+.EE
+.in
+.PP
+Install globally and run via npx:
+.sp
+.in +4n
+.EX
+npx zorvix 8080
+.EE
+.in
+.SH ENVIRONMENT
+.TP
+.B NODE_ENV
+Not consumed directly by
+.BR zorvix ,
+but Node.js itself reads this variable.
+.TP
+.B PWD
+The working directory used as the default static root when
+.B \-\-root
+is not supplied.
+.SH FILES
+.TP
+.I /.well-known/appspecific/com.chrome.devtools.json
+Served only when
+.B \-\-devtools
+is active.
+Contains a gzip-compressed JSON object with the fields
+.B workspace.root
+and
+.BR workspace.uuid .
+.SH REQUIREMENTS
+Node.js 22 or later.
+No runtime npm dependencies.
+.SH SEE ALSO
+.BR zorvix (3),
+.BR node (1),
+.BR openssl (1)
+.SH BUGS
+Report bugs at
+.UR https://github.com/DanielLMcGuire/Zorvix/issues
+.UE .
+.SH AUTHOR
+Daniel McGuire.
+.SH LICENSE
+MIT License.
