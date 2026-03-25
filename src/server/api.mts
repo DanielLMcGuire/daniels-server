@@ -13,6 +13,7 @@ import { createPrimaryInstance }          from '#zorvix/cluster';
 import { resolvePem }                     from '#zorvix/tls';
 import { HEADERS_TIMEOUT_MS, REQUEST_TIMEOUT_MS, MAX_HEADERS_COUNT, SHUTDOWN_GRACE_MS } from '#zorvix/internal-types';
 import type { ServerOptions, ServerInstance, RequestHandler } from '#zorvix/api-types';
+export { createBodyParser } from '#zorvix/middleware';
 
 
 /**
