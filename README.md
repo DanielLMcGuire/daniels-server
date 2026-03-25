@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/zorvix.svg)](https://www.npmjs.com/package/zorvix)
 [![Node Version](https://img.shields.io/node/v/zorvix.svg)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![NPM Downloads](https://img.shields.io/npm/dw/zorvix)
+[![NPM Downloads](https://img.shields.io/npm/dw/zorvix)](https://www.npmjs.com/package/zorvix)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/DanielLMcGuire/Zorvix/ci.yml.svg?label=npm%20run%20test
 )](https://github.com/DanielLMcGuire/Zorvix/actions/workflows/ci.yml?query=event%3Apush+branch%3Amaster)
 
