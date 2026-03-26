@@ -28,12 +28,16 @@ export function createPrimaryInstance(port: number, root: string): ServerInstanc
         const worker = cluster.fork();
         worker.on('exit', (code, signal) => {
             if (shuttingDown) return;
+            
             if (signal === 'SIGINT' || signal === 'SIGTERM') return;
+
             console.error(
                 `[primary] Worker ${worker.process.pid} exited` +
                 ` (code=${code ?? '—'}, signal=${signal ?? '—'}), restarting in 500 ms…`,
             );
-            setTimeout(spawnWorker, 500);
+            setTimeout(() => {
+                if (!shuttingDown) spawnWorker();
+            }, 500);
         });
     }
 

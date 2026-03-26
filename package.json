@@ -1,6 +1,6 @@
 {
     "name": "zorvix",
-    "version": "1.8.2",
+    "version": "1.8.3",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",

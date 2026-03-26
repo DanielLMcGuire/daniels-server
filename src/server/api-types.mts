@@ -182,4 +182,4 @@ export interface ServerInstance {
 export declare function serve(
     options: ServerOptions,
     setup:   (server: ServerInstance) => void | Promise<void>,
-): void;
+): void | Promise<void>;

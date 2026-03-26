@@ -42,12 +42,11 @@ export { createBodyParser } from '#zorvix/middleware';
 export function serve(
     options: ServerOptions,
     setup:   (server: ServerInstance) => void | Promise<void>,
-): void {
+): void | Promise<void> {
     const { workers = false } = options;
 
     if (workers && cluster.isPrimary) {
         const root = options.root ? path.resolve(options.root) : process.cwd();
-
         const workerBootstrap = fileURLToPath(
             new URL('./worker-bootstrap.min.mjs', import.meta.url),
         );
@@ -57,14 +56,23 @@ export function serve(
         process.env.ZORVIX_SETUP   = setup.toString();
 
         createPrimaryInstance(options.port, root).start().catch(console.error);
-        return;
+        
+        return; 
     }
 
     const server = createServer(options);
-    Promise.resolve(setup(server)).catch(err => {
-        console.error('Server: Unhandled error in setup:', err);
-        process.exit(1);
-    });
+    const setupResult = setup(server);
+
+    if (workers) {
+        return new Promise(() => {
+            Promise.resolve(setupResult).catch(err => {
+                console.error('Server: Unhandled error in setup:', err);
+                process.exit(1);
+            });
+        });
+    }
+
+    return Promise.resolve(setupResult);
 }
 
 
