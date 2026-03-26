@@ -9,7 +9,7 @@
 
 A typed zero-dependency Node.js http/https server supporting CLI with in-built clustering, caching, and an API that adds REST routing and Express style middleware support.
 
-[Benchmarks](https://github.com/DanielLMcGuire/Zorvix/wiki/Benchmarks) <sub>against Express and 0http</sub>
+[Full Benchmarks](https://github.com/DanielLMcGuire/Zorvix/wiki/Benchmarks) <sub>against Express and 0http</sub>
 
 ---
 
@@ -133,6 +133,8 @@ await server.stop();
 #### [Full `zorvix(3)` documentation](https://github.com/DanielLMcGuire/Zorvix/wiki/zorvix.3)
 
 ---
+
+<img src="https://zorvix.pages.dev/bench-latest.svg" width="700"></img>
 
 ## Features
 
