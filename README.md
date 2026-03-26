@@ -84,7 +84,7 @@ Use `serve` instead of `createServer` when `workers: true`. Any code that must r
 ```ts
 import { serve } from 'zorvix';
 
-// All dependencies must be initialized inside, not in the outer scope!
+// All dependencies must be initialized inside (use import(), not import!), not in the outer scope!
 serve({
     port: 3000,
     root: './public',
