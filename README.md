@@ -78,7 +78,7 @@ await server.stop();
 
 ### `serve(options, setup)`
 
-Use `serve` instead of `createServer` when `workers: true`. Any code that must only run inside a worker (connections, setup, route registration) belongs inside the callback.
+Use `serve` instead of `createServer` when `workers: true`. Any code that must run inside a worker (connections, setup, route registration) belongs inside the callback.
 
 ```ts
 import { serve } from 'zorvix';
