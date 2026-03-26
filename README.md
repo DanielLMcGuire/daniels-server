@@ -57,33 +57,73 @@ npx zorvix 8080 --dev --devtools -l
 
 ## API
 
-`api.mts` exports `createServer()` for embedding the server in your own code. In addition to static file serving, you can register REST routes and middleware that run before the static layer.
+### `createServer(options)`
+
+Creates and returns a `ServerInstance`. Use this for single-process servers, tests, and any case where you don't need `workers: true`.
 
 ```ts
 import { createServer } from 'zorvix';
- 
+
 const server = createServer({
     port: 3000,
     root: './public',
     logging: true,
-    devTools: true,
-    workers: true,       // cluster mode
-    key: './server.key', // TLS
-    cert: './server.crt',
 });
 
-// Middleware
+server.get('/hello', (req, res) => res.end('Hello, world!'));
+
+await server.start();
+await server.stop();
+```
+
+### `serve(options, setup)`
+
+Use `serve` instead of `createServer` when `workers: true`. Any code that must only run inside a worker (connections, setup, route registration) belongs inside the callback.
+
+```ts
+import { serve } from 'zorvix';
+
+serve({
+    port: 3000,
+    root: './public',
+    logging: true,
+    workers: true,
+    key: './server.key',
+    cert: './server.crt',
+}, async (server) => {
+    // Only runs in worker processes
+    await db.connect();
+
+    server.use('/api', authMiddleware);
+
+    server.get('/users/:id', async (req, res) => {
+        res.json(await db.findUser(req.params.id));
+    });
+
+    server.post('/users', async (req, res) => {
+        res.json(await db.createUser(req.body), 201);
+    });
+
+    await server.start();
+});
+```
+
+### Routes and middleware
+
+Both `createServer` and `serve` return/provide a `ServerInstance` with the same API:
+
+```ts
 server.use((req, res, next) => { next(); });
 server.use('/api', authMiddleware);
- 
-// Routes support :name params and full * / *endpoint wildcards 
-server.get('/users/:id', (req, res) => res.end(req.params.id));
-server.post('/users', handler);
-server.put('/users/:id', handler);
-server.patch('/users/:id', handler);
+
+server.get('/users/:id',    (req, res) => res.end(req.params.id));
+server.post('/users',       handler);
+server.put('/users/:id',    handler);
+server.patch('/users/:id',  handler);
 server.delete('/users/:id', handler);
- 
-// Lifecycle
+server.head('/users/:id',   handler);
+server.options('/users',    handler);
+
 await server.start();
 await server.stop();
 ```
@@ -99,7 +139,7 @@ await server.stop();
 - **Gzip** - compressible MIME types are compressed when the client sends `Accept-Encoding: gzip`
 - **Content-Disposition** - binary/archive types are served with `attachment` so browsers download rather than render
 - **TLS** - pass `key`/`cert` as file paths or pre-loaded `Buffer`s to switch to `https.createServer`
-- **Clustering** - primary supervises a worker and restarts it after 500 ms on unexpected exit; clean signal exits are not restarted
+- **Clustering** - `serve()` guarantees user code never runs in the primary; primary supervises a worker and restarts it after 500 ms on unexpected exit; clean signal exits are not restarted
 - **Graceful shutdown** - idle connections closed immediately; active connections given a 5 s grace period before forced termination
 - **DevTools** - serves `/.well-known/appspecific/com.chrome.devtools.json` with a per-process UUID to register the root as a Chrome DevTools workspace
 - **WebSocket-friendly** - `server.server` exposes the underlying `http.Server` / `https.Server` for attaching WebSocket libraries

@@ -1,9 +1,13 @@
 .TH ZORVIX 3 "2025" "zorvix 1.5.0" "Node.js Library Functions"
 Node.js API for embedding a static HTTP/HTTPS server with REST routing
 .nf
-.B import { createServer } from 'zorvix';
+.B import { createServer, serve } from 'zorvix';
 .PP
 .BI "const server = createServer(" options ");"
+.PP
+.BI "serve(" options ", async (server) => {"
+.BI "    await server.start();"
+.BI "});"
 .PP
 .BI "server.use(" handler ");"
 .BI "server.use(" path ", " handler ");"
@@ -22,14 +26,17 @@ Node.js API for embedding a static HTTP/HTTPS server with REST routing
 .SH DESCRIPTION
 The
 .B zorvix
-package exports a single factory function,
-.BR createServer() ,
-that creates an HTTP or HTTPS server combining static file serving with
-Express-style route registration and middleware.
-.PP
-The returned
+package exports two factory functions.
+.BR createServer ()
+creates and returns a
 .B ServerInstance
-object exposes methods for registering middleware and routes and for
+directly; it is the right choice for single-process use.
+.BR serve ()
+is the cluster-safe entrypoint.
+.PP
+Both functions produce the same
+.B ServerInstance
+object, which exposes methods for registering middleware and routes and for
 controlling the server lifecycle.
 All registration methods return
 .I this
@@ -71,6 +78,38 @@ requests).
 The worker process re-executes the same entry-point, calls
 .BR createServer ()
 again, and this time receives a full server instance.
+.SH serve(options, setup)
+.TP
+.B Signature
+.nf
+serve(options: ServerOptions, setup: (server: ServerInstance) => void | Promise<void>): void
+.fi
+.PP
+Cluster-safe application entrypoint.
+When
+.B options.workers
+is
+.B true
+and the calling process is the cluster primary,
+.BR serve ()
+forks and supervises a worker without invoking
+.IR setup .
+In all other cases (single-process mode, or when called from inside a
+worker) the
+.I setup
+callback is invoked immediately with a fully configured
+.BR ServerInstance .
+Call
+.BR server.start ()
+inside the callback to begin accepting connections.
+.PP
+If the
+.I setup
+callback throws or returns a rejected Promise,
+.BR serve ()
+logs the error and calls
+.B process.exit(1)
+to prevent a silent failure.
 .SH ServerOptions
 .TP
 .B port \fI(number, required)\fR
@@ -116,14 +155,15 @@ Default:
 Enable cluster mode.
 When
 .B true
-and the process is the cluster primary,
+and the process is the cluster primary, a worker is forked and supervised;
+the primary restarts the worker after 500\~ms on unexpected exit.
+When using
+.B workers: true
+prefer
+.BR serve ()
+over
 .BR createServer ()
-returns a primary-only stub and forks a worker.
-The worker re-calls
-.BR createServer ()
-and becomes the HTTP server.
-The primary supervises the worker and restarts it after 500\~ms on
-unexpected exit.
+to guarantee that the code is only executed in the worker.
 Default:
 .BR false .
 .TP
@@ -497,16 +537,20 @@ await server.start();
 .fi
 .SS Cluster mode
 .nf
-import { createServer } from 'zorvix';
+import { serve } from 'zorvix';
 
-// Both the primary and the worker call createServer().
-// In the primary, a lightweight stub is returned and a worker is forked.
-// In the worker, the full server is created and starts listening.
-const server = createServer({ port: 3000, workers: true });
+// The setup callback is never invoked in the primary process.
+// DB connections, route registration, and server.start() all run
+// exclusively inside the worker.
+serve({ port: 3000, workers: true }, async (server) => {
+    await db.connect();
 
-server.get('/hello', (req, res) => res.end('Hello, world!'));
+    server.get('/users/:id', async (req, res) => {
+        res.json(await db.findUser(req.params.id));
+    });
 
-await server.start();
+    await server.start();
+});
 .fi
 .SS Graceful shutdown on SIGTERM
 .nf
