@@ -79,7 +79,7 @@
         "test:range": "npx tsx --test tests/range.test.mts",
         "test:mime": "npx tsx --test tests/mime.test.mts",
         "test:server": "npx tsx --test tests/server.test.mts",
-        "start": "npx tsx dist/zorvix.min.mjs",
+        "start": "node dist/zorvix.min.mjs",
         "prepublishOnly": "npm run build:prod"
     },
     "devDependencies": {
