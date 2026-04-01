@@ -4,7 +4,7 @@ import type { RequestHandler } from '#zorvix/router';
 
 export type { NextFunction, RequestHandler } from '#zorvix/router';
 
-declare module 'http' {
+declare module 'node:http' {
     interface IncomingMessage {
         /** Route parameters extracted from the matched URL pattern (e.g. `{ id: '42' }` for `/users/:id`). */
         params: Record<string, string>;
