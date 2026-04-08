@@ -442,6 +442,18 @@ describe('Body Parser Middleware', () => {
         assert.deepEqual(JSON.parse(res.text), { key: 'value', num: 42 });
     });
 
+    it('parses text/plain bodies as strings', async () => {
+        const payload = 'hello world';
+
+        const res = await post(port, '/api/echo', payload, {
+            'content-type': 'text/plain',
+            'content-length': payload.length
+        });
+
+        assert.equal(res.status, 200);
+        assert.strictEqual(JSON.parse(res.text), payload);
+    });
+
     it('returns 413 Content Too Large when body exceeds limit via Content-Length', async () => {
     const oversizedBody = 'a'.repeat(101);
     const res = await post(port, '/api/echo', oversizedBody, { 
