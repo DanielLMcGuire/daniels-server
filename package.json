@@ -5,6 +5,7 @@
     "license": "MIT",
     "author": "Daniel McGuire",
     "type": "module",
+    "homepage": "https://zorvix.pages.dev",
     "bugs": {
         "url": "https://github.com/DanielLMcGuire/Zorvix/issues"
     },
