@@ -81,7 +81,7 @@ await server.stop();
 
 Use `serve` instead of `createServer` when `workers: true`. Any code that must run inside a worker (connections, setup, route registration, etc) belongs INSIDE the callback.
 
-I will be updating this soon to allow the worker entry to be a path to a js file
+Confused? [See a working example](https://github.com/DanielLMcGuire/Phasor/blob/master/src/Extensions/web/phasorweb.mts)
 
 ```ts
 import { serve } from 'zorvix';
