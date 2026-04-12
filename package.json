@@ -1,6 +1,6 @@
 {
     "name": "zorvix",
-    "version": "1.8.11",
+    "version": "1.8.12",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
@@ -46,25 +46,21 @@
     ],
     "imports": {
         "#zorvix/types": "./src/public-types.mts",
-
         "#zorvix/api": "./src/server/api.mts",
         "#zorvix/api-types": "./src/server/api-types.mts",
         "#zorvix/devtools": "./src/server/devtools.mts",
         "#zorvix/middleware": "./src/server/middleware.mts",
         "#zorvix/router": "./src/server/router.mts",
         "#zorvix/tls": "./src/server/tls.mts",
-
         "#zorvix/cache": "./src/static/cache.mts",
         "#zorvix/mime": "./src/static/mime.mts",
         "#zorvix/range": "./src/static/range.mts",
         "#zorvix/serve": "./src/static/serve.mts",
         "#zorvix/static": "./src/static/static.mts",
         "#zorvix/static-types": "./src/static/static-types.mts",
-
         "#zorvix/cluster": "./src/process/cluster.mts",
         "#zorvix/worker-bootstrap": "./src/process/worker-bootstrap.mts",
         "#zorvix/cli": "./src/process/cli.mts",
-        
         "#zorvix/internal-types": "./src/internal-types.mts",
         "#zorvix/mimetypes": "./resources/server-mimetypes.json",
         "#zorvix/pkg": "./package.json"
@@ -84,10 +80,10 @@
         "prepublishOnly": "npm run build:prod"
     },
     "devDependencies": {
-        "@types/node": "^25.0.0",
-        "esbuild": "^0.25.0",
+        "@types/node": "^25.6.0",
+        "dts-bundle-generator": "^9.5.1",
+        "esbuild": "^0.25.12",
         "tsx": "^4.21.0",
-        "typescript": "^5.0.0",
-        "dts-bundle-generator": "^9.0.0"
+        "typescript": "^5.9.3"
     }
 }

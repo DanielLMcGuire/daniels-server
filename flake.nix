@@ -19,7 +19,7 @@
 
           src = ./.;
 
-          npmDepsHash = "sha256-DnJeTP1fSJl2MqjSWM5SDefUtsUfGrHv1VCTPv7dWco=sha256-DnJeTP1fSJl2MqjSWM5SDefUtsUfGrHv1VCTPv7dWco=";
+          npmDepsHash = "sha256-+QybCCTpl+lKdv5MKkp/H4iPcPS3kIWYfl8Qu5K2AW8=";
 
           buildPhase = ''
             npm install
