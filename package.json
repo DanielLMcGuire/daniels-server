@@ -1,17 +1,17 @@
 {
     "name": "zorvix",
-    "version": "1.8.12",
+    "version": "1.8.13",
     "description": "A static http/https file server",
     "license": "MIT",
     "author": "Daniel McGuire",
     "type": "module",
     "homepage": "https://zorvix.pages.dev",
     "bugs": {
-        "url": "https://github.com/DanielLMcGuire/Zorvix/issues"
+        "url": "https://codeberg.org/DanielLMcGuire/Zorvix/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/DanielLMcGuire/Zorvix.git"
+        "url": "git+https://codeberg.org/DanielLMcGuire/Zorvix.git"
     },
     "bin": {
         "zorvix": "dist/zorvix.min.mjs"
